@@ -1,0 +1,73 @@
+Data is described and represented by the mathematical concept of a relation
+A relation is a structure with rows (tuples) and columns (attributes, fields)
+Codd defined relations as sets, meaning no duplicates
+	However SQL allows duplicates during processing and in results
+
+What is a relation?
+	A structure with rows and columns
+	A subset of a Cartesian product of sets
+
+What is the Cartesian product of {a, b, c, d} and {1, 2, 3}?
+	{ (a, 1), (a, 2), (a, 3), (b, 1), (b, 2), (b, 3),
+	  (c, 1), (c, 2), (c, 3), (d, 1), (d, 2), (d, 3) }
+For a relation we will only keep some of the above elements
+
+Tuple: A k-tuple is an order sequence of k values (not necessilary different)
+	(1, 2) - binary tuple
+	(a, b, b) - ternary tuple
+	(112, 'Ann', 'CA', 'F', 3.95) - 5 - tuple
+
+Relation:
+	A k-ary relation is a subset of D1 X D2 X ... X Dk, where each Di is a set of elements
+	Di is the domain (or datatype) of the i-th column of the relation
+	Domains may be enumerated {'AMS', 'CMPS', 'TIM'} or may be of standard types
+
+An attribute is the name of a column in a relation
+A relation schema R is a sequence of attributes often written as R(A1, ..., Ak), where Ai is the name of the ith column of the relation
+	The datatype / domain of each attribute is of some elementary type, such as integer, string or an enumerated type,
+		not a structure, array, list, sequence or other compound structure: "First normal form"
+		First normal form means relationships are not nested
+	E.g. Student(studentID:int, name:text, major:text, gender:text, avgGPA:double)
+
+Domains in relational database were atomic. That atomicity means that relational databases staisfy what Ted Codd called "First Normal Form" 1NF
+	Major has to be a single value, not a list of values
+	Address has to be a single value, not a structure
+
+An instance of a relation schema is a relation that conforms to the relation schema
+	E.g. Student(studentID:int, name:text, major:text, gender:text, avgGPA:double)
+		Every tuple in the relation must be a 5-tuple
+		The ith component of each tuple must have the correct domain
+
+Arity is how many columns you have (comes from a cartesian product from 5 sets)
+
+A relational database schema, or simply a database schema is a set of relation schemas with disjoint relation names
+	Informally it's a bunch of different relations
+A university database schema:
+	Student(studentID, name, major, gender, avgGPA)
+	Course(courseID, description, department)
+	Teach(profID, courseID, quarter, year)
+	Enroll(studnetID, courseID, grade)
+	Professor(profID, name, department, level)
+
+A database instance has multiple tables that store different relations
+
+In Relational DBMS the term "Schema" refers to a collection of Relations/Tables that are in a named database schema
+In the book, "Schema" usually reers to a relation schema, the schema of a named relation with attributes that have specific data types
+
+
+
+A superkey S for a relation is a specified value for each attribute of a relation so it is guaranteed to specify a single value
+	A = 1, B = 2, C = 3
+We'll assume that relations cannot have duplicates. Then for any relation R, there always is a superkey of R, namely attrib(R), all the attributes of R
+A key K for a relation schema R is a subset of the attributes of R such that:
+	There can't be two different tuples in an instance of R that have the same value for all the attributes in K
+	Minimal: No proper subset of K has the above property (smallest possible number of attributes used to specify the key)
+A superkey is a constraint on the allowable instance of relation R
+	Since every key is a superkey, a key is also a constraint on the allowable instances of R
+
+There can be multiple keys in general
+One key is chosen and defined as the Primary Key, while the rest are candidate keys
+Student(studentID, name, dob, major, gender, avgGPA)
+	{studentID}, {name, dob} are keys and also superkeys
+		{studentID} is the Primary Key
+		{name, dob} is the candidate key
