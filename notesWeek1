@@ -55,7 +55,6 @@ In Relational DBMS the term "Schema" refers to a collection of Relations/Tables 
 In the book, "Schema" usually reers to a relation schema, the schema of a named relation with attributes that have specific data types
 
 
-
 A superkey S for a relation is a specified value for each attribute of a relation so it is guaranteed to specify a single value
 	A = 1, B = 2, C = 3
 We'll assume that relations cannot have duplicates. Then for any relation R, there always is a superkey of R, namely attrib(R), all the attributes of R
@@ -71,3 +70,164 @@ Student(studentID, name, dob, major, gender, avgGPA)
 	{studentID}, {name, dob} are keys and also superkeys
 		{studentID} is the Primary Key
 		{name, dob} is the candidate key
+Picking the primary key is usually done arbitrarily
+
+
+10/3/25
+If D1 has n1 elements and D2 has n2 elements, then how many elements are there in D1 x D2
+n1 * n2
+
+If Di has ni elements, then how many elements are there in the Cartesian Product D1 x ... x Dk
+n1 * n2 * ... * nk
+
+If D1 has n1 elements and D2 has n2 elements, then how many relation instances can one construct from D1 x D2
+2^(n1 * n2)
+Number of subsets of a set is 2 to the power of the size of the set
+
+If Di has ni elements then how many relation instances can one construct from D1 x ... x Dk
+2^(n1 * n2 * ... * nk)
+
+A relation is just a table
+Rows are tuples (entry in the table)
+Attribute names are the names of the columns
+Arity is how many columns there are
+Minimal superkeys are keys
+	Doesn't mean key with smallest number of elements, it means key that you can't possibly remove any attributes from and still have it be a key
+
+You can't look at the data to determine a key, you have to look at the semantics
+	In a small enough table, everyone might have a different GPA
+	This doesn't mean no one can ever have the same GPA
+	Same thing happens with name, or similar attributes
+	Want something like a student ID, employee ID, SSN that uniquely identifies each entry in the table
+
+By looking at data you can determine that something isn't a key if something occurs twice, but you can't determine if something is a key
+
+What is a data model?
+Has three parts
+1. A notation for describing data and mathematical objects for representing data
+2. A set of operations for manipulating data
+	Retrieving / modifying data
+3. Constraints of the data
+
+3 types of relations (tables) in a RDBMS
+1. Stored relations, called tables (or relation instances)
+2. Views
+	Results of queries on tables
+	Like tables, just not stored in the database
+3. Temporary results from computations, including answers to queries
+
+Data independence
+Relational data model provides a logical view of the data, and hides the physical representation of data
+Data is represented conceptually as tables, but this isn't necessarily how the data is stored on the disk
+Don't have to know how things are stored, just need to know how to access elements of table
+
+Logical data independence
+Protects views from changes in logical (conceptual) structure of data
+	Which tables do you have?
+	A view is like a table, except that it's computed from tables, not stored in database
+	We can change what data is stored without affecting the user
+		Maybe certain tables aren't stored at all times but you can derive them whenver
+		E.g. which students have a high gpa
+Something might be a table today, and instead be a view tomorrow
+The user doesn't need to know this, they still can access the data they want
+
+Physical data independence
+Protects conceptual schema from changes in physical structure of data
+	How are tables stored? (not everything is stored the same)
+	You can store parts of a relation privately and parts publicly
+		Maybe want to hide SSN and salary of employees, while having name and department public is fine
+Can change physical storage however you want to boost performance
+
+
+Codd proposed two different query languages for relational data model
+Relational algebra
+	Queries expressed as sequence of operations on relations
+	Procedural languages
+
+Relational calculus
+	Queries are expressed as formulas of first-order logic
+	Declarative language
+
+Codd's Theorem: The relational algebra query language has same expressive power as relational calculus query languages
+SQL is a third option to represent the relational data model
+	SQL has more functionaly than both previous options, because people have since found things useful and added them to the language
+
+Procedural program
+Program is specified as a sequence of operations to obtain desired outcome
+E.g. Java, C, Python ...
+
+Declarative program
+Program specifies what is the expected outcome, not how it is obtained
+The programming language knows what to do to get expected outcome
+Very high level language
+Systems always give you the correct answer, and do their best to get it as fast as possible (although not always the fastest possible way to achieve what you want)
+	Can try to manually optimize things, but can't fully control everything
+E.g. Scheme, Ocaml
+
+SQL is mostly declarative
+Main language used to interact with databases
+Lots of different iterations and variants
+	The basics are the same between versions
+SQL dialects exist where some keywords aren't exactly the same
+
+SQL: 2 Sublanguages
+Data Definition Language (DLL)
+	Sublanguage of SQL used to create, delete, modify definition of tables and views
+	For declaring database schemas
+
+Deta Manipulation Language (DML)
+	Sublanguage of SQL that allows uers to insert, delete, and modify rows of tables and pose queries to retrieve data
+	For asking questions about the database and modifying the database
+
+
+Data Types in SQL
+INT or INTEGER (same as in C)
+SMALLINT (short)
+FLOAT(p), FLOAT and REAL (Implementation-specific)
+DOUBLE PRECISION (double)
+DECIMAL (n, d), NUMERIC(n, d) - almost same meaning
+	Total of n decimal digits; d of them to the right of the decimal point
+BOOLEAN or BOOL: TRUE, FALSE, UNKNOWN
+CHAR(n): fixed-length string of up to n characters (which is blank-padded on the right to be exactly n characters)
+VARCHAR(n): string of up to n characters, not black-padded
+BIT(n)
+BIT VARYING(n)
+DATE, TIME, TIMESTAMP, INTERVAL
+	Separate data types
+	Consult documentation for operation results
+		E.g. subtracting one TIME from another results in an INTERVAL
+NULL is a special value in SQL used to represent unknown values for any data type
+
+Defining a table
+CREATE TABLE Movies (
+	movieTitle	CHAR(100),
+	movieYear	INT,
+	length		INT,
+	genre		CHAR(10),
+	studioName	CHAR(30),
+	procuderC#	INT
+);
+producerC# here is a uniquely identifying Certificate Number identifying a movie executive
+
+CREATE TABLE MovieStar (
+	starName	CHAR(30),
+	address		VARCHAR(255),
+	gender		CHAR(1),
+	birthdate	DATE
+);
+
+Deleting a table
+DROP TABLE Movies;
+	Entire table removed from database schema
+
+Modifying a table
+ALTER TABLE MovieStar ADD phone CHAR(16);
+	Adds an attribute "phone" with type CHAR(16) to the table MovieStar
+
+ALTER TABLE MovieStar DROP birthdate;
+	Deletes the birthdate attribute
+
+If a row does not have a value specified for an attribute, the default value is NULL
+A specific default value can be set using the DEFAULT keyword
+	address		VARCHAR(255) DEFAULT 'Hollywood',
+	ALTER TABLE MovieStar ADD phone CHAR(16) DEFAULT 'unlisted';
