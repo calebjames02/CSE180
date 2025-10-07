@@ -44,7 +44,7 @@ CREATE TABLE Reservation(
 	flightID INT,
 	bookingDate DATE,
 	seatClass CHAR(1),
-	ticketPrice NUMERIC(9, 2), -- Check if this is correct
+	ticketPrice NUMERIC(9, 2),
 	paymentMethod VARCHAR (40),
 	PRIMARY KEY (reservationID),
 	FOREIGN KEY (passengerID) REFERENCES Passenger (passengerID),
