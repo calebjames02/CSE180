@@ -57,6 +57,7 @@ COPY Reservation FROM stdin USING DELIMITERS '|';
 306|5|103|2024-02-25|E|80.00|M
 307|6|105|2024-03-15|E|180.00|V
 308|1|104|2024-01-13|F|45.00|\N
+309|1|104|2024-01-13|F|45.00|\N
 \.
 
 -- CheckIn(reservationID, passengerID, checkInTime, bagCount, seatNumber)
@@ -65,6 +66,7 @@ COPY CheckIn FROM stdin USING DELIMITERS '|';
 308|1|2024-01-14 05:50:00|3|14C
 301|1|2024-02-01 07:40:00|1|22D
 305|5|2024-02-02 06:30:00|1|18B
+309|5|2024-01-14 05:50:00|5|18B
 \.
 
 -- FlightCrewAssignment(flightID, crewID, compensation)
