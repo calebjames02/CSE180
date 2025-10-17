@@ -1,3 +1,5 @@
+#!/bin/bash
+
 docker cp create_lab2.sql container-psql:.
 docker cp load_lab2.sql container-psql:.
 docker cp query1.sql container-psql:.
