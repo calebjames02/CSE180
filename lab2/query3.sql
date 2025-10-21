@@ -5,5 +5,4 @@ FROM FlightCrewAssignment f1
 	JOIN Flight fl2 ON f2.flightID = fl2.flightID
 	JOIN CrewMember m1 ON m1.crewID = f1.crewID AND m1.crewName <> 'Sophia Kim'
 	JOIN CrewMember m2 ON m2.crewID = f1.crewID
---	JOIN CrewMember m2 ON m2.crewID = f1.crewID AND m2.crewName <> 'Sophia Kim'
 WHERE fl1.aircraftType = fl2.aircraftType
