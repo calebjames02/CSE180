@@ -25,8 +25,23 @@ import psycopg2, sys
  # For more details, including error handling and return codes, see the Lab4 pdf.
 
 def countNumberOfDepartingPassengers (myConn, departureAirport):
-    # You need to implement this function
-    return 0
+	stmt = f"""SELECT COUNT (DISTINCT r.passengerID)
+				FROM Reservation r
+				JOIN Flight f ON r.flightID = f.flightID
+				WHERE f.departureAirport = {departureAirport};"""
+
+	try:
+		myCursor = myConn.cursor()
+		myCursor.execute(stmt)
+	except:
+		print(f"Statement {stmt} is bad", file=sys.stderr)
+		myCursor.close()
+		myConn.close()
+		sys.exit(-1)
+
+	result = myCursor.fetchone()
+
+	return result
 # end countNumberOfDepartingPassengers
 
 
@@ -41,8 +56,39 @@ def countNumberOfDepartingPassengers (myConn, departureAirport):
 # For more details, including error handling, see the Lab4 pdf.
 
 def updateReservationPayment (myConn, departureDate):
-    # You need to implement this function
-    return 0
+	stmt = """
+		SELECT DATE(f.flightID)
+		FROM Reservation r
+		JOIN Flight f ON r.flightID = f.flightID;
+		"""
+
+	try:
+		myCursor = myConn.cursor()
+		myCursor.execute(stmt)
+	except:
+		print(f"Statement {stmt} is bad", file=sys.stderr)
+		myCursor.close()
+		myConn.close()
+		sys.exit(-1)
+
+	rows = myCursor.fetchall()
+	for row in rows:
+		if departureDate[5:10] == row[5:10]:
+			if int(row[0:5]) > 2025 or int(row[0:5]) < 2025:
+				return -1
+
+	stmt = f"""
+		BEGIN TRANSACTION
+		UPDATE Reservation
+		SET r.paymentMethod = r.paymentMethod || 'REIMBURSED {departureDate}'
+		FROM Reservation r, Flight f
+		WHERE DATE(f.departureDate) = {departureDate}
+		COMMIT;
+		"""
+
+	myCursor.execute(stmt)
+
+	return 0
 
 # end updateOrderStatus
 
@@ -64,62 +110,62 @@ def updateReservationPayment (myConn, departureDate):
 
 def promoteCrewMembers (myConn, crewAssignments, minYearsExperience):
 
-    try:
-        myCursor = myConn.cursor()
-        sql = "SELECT promoteCrewMembersFunction(%s, %s)"
-        myCursor.execute(sql, (crewAssignments, minYearsExperience))
-    except:
-        print("Call of promoteCrewMembers with arguments", crewAssignments, minYearsExperience, "had error", file=sys.stderr)
-        myCursor.close()
-        myConn.close()
-        sys.exit(-1)
+	try:
+		myCursor = myConn.cursor()
+		sql = "SELECT promoteCrewMembersFunction(%s, %s)"
+		myCursor.execute(sql, (crewAssignments, minYearsExperience))
+	except:
+		print("Call of promoteCrewMembers with arguments", crewAssignments, minYearsExperience, "had error", file=sys.stderr)
+		myCursor.close()
+		myConn.close()
+		sys.exit(-1)
 
-    row = myCursor.fetchone()
-    myCursor.close()
-    return(row[0])
+	row = myCursor.fetchone()
+	myCursor.close()
+	return(row[0])
 
 #end promoteCrewMembers
 
 
 def main():
-    port = "5432"
-    userID = "cse180"
-    pwd = "database4me"
+	port = "5432"
+	userID = "cse180"
+	pwd = "database4me"
 
-    # Try to make a connection to the database
-    try:
-        myConn = psycopg2.connect(port=port, user=userID, password=pwd)
-    except:
-        print("Connection to database failed", file=sys.stderr)
-        sys.exit(-1)
-        
-    # We're making every SQL statement a transaction that commits.
-    # Don't need to explicitly begin a transaction.
-    # Could have multiple statement in a transaction, using myConn.commit when we want to commit.
-    
-    myConn.autocommit = True
-    
-    # There are other correct ways of writing all of these calls correctly in Python.
-        
-    # Perform tests of countNumberOfDepartingPassengers, as described in Section 6 of Lab4.
-    # Print their outputs (including error outputs) here, not in countNumberOfDepartingPassengers.
-    # You may use a Python method to help you do the printing.
+	# Try to make a connection to the database
+	try:
+		myConn = psycopg2.connect(port=port, user=userID, password=pwd)
+	except:
+		print("Connection to database failed", file=sys.stderr)
+		sys.exit(-1)
 
-    # Perform tests of updateReservationPayment, as described in Section 6 of Lab4.
-    # Print their outputs (including error outputs) here, not in updateReservationPayment.
-    # You may use a Python method to help you do the printing.
+	# We're making every SQL statement a transaction that commits.
+	# Don't need to explicitly begin a transaction.
+	# Could have multiple statement in a transaction, using myConn.commit when we want to commit.
 
-    # Perform tests of promoteCrewMembers, as described in Section 6 of Lab4,
-    # Print their outputs (including error outputs) here, not in promoteCrewMembers.
-    # You may use a Python method to help you do the printing.
-  
-    myConn.close()
-    sys.exit(0)
+	myConn.autocommit = True
+
+	# There are other correct ways of writing all of these calls correctly in Python.
+
+	# Perform tests of countNumberOfDepartingPassengers, as described in Section 6 of Lab4.
+	# Print their outputs (including error outputs) here, not in countNumberOfDepartingPassengers.
+	# You may use a Python method to help you do the printing.
+
+	# Perform tests of updateReservationPayment, as described in Section 6 of Lab4.
+	# Print their outputs (including error outputs) here, not in updateReservationPayment.
+	# You may use a Python method to help you do the printing.
+
+	# Perform tests of promoteCrewMembers, as described in Section 6 of Lab4,
+	# Print their outputs (including error outputs) here, not in promoteCrewMembers.
+	# You may use a Python method to help you do the printing.
+
+	myConn.close()
+	sys.exit(0)
 #end
 
 #------------------------------------------------------------------------------
 if __name__=='__main__':
 
-    main()
+	main()
 
 # end
