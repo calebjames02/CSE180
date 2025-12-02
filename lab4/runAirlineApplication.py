@@ -25,14 +25,22 @@ import psycopg2, sys
  # For more details, including error handling and return codes, see the Lab4 pdf.
 
 def countNumberOfDepartingPassengers (myConn, departureAirport):
-	stmt = f"""SELECT COUNT (DISTINCT r.passengerID)
-				FROM Reservation r
-				JOIN Flight f ON r.flightID = f.flightID
-				WHERE f.departureAirport = {departureAirport};"""
+	stmt = "SELECT COUNT (DISTINCT r.passengerID) FROM Reservation r JOIN Flight f ON r.flightID = f.flightID WHERE f.departureAirport LIKE %s;"
+
+#	stmt = "SELECT 1 FROM Airport a WHERE a.city = %s"
+#	myCursor = myConn.cursor()
+#	myCursor.execute("SELECT 1 FROM Airport a WHERE a.city = %s", (departureAirport,))
+#	print(result)
+#	myCursor.close()
 
 	try:
 		myCursor = myConn.cursor()
-		myCursor.execute(stmt)
+		stmt2 = "SELECT a.airportCode FROM Airport a WHERE a.airportCode = %s"
+		myCursor.execute(stmt2, (departureAirport,))
+		result = myCursor.fetchone()
+		if result is None:
+			return -1
+		myCursor.execute("SELECT COUNT (DISTINCT r.passengerID) FROM Reservation r JOIN Flight f ON r.flightID = f.flightID WHERE f.departureAirport = %s;", (departureAirport,))
 	except:
 		print(f"Statement {stmt} is bad", file=sys.stderr)
 		myCursor.close()
@@ -40,8 +48,9 @@ def countNumberOfDepartingPassengers (myConn, departureAirport):
 		sys.exit(-1)
 
 	result = myCursor.fetchone()
+	myCursor.close()
 
-	return result
+	return result[0]
 # end countNumberOfDepartingPassengers
 
 
@@ -56,39 +65,52 @@ def countNumberOfDepartingPassengers (myConn, departureAirport):
 # For more details, including error handling, see the Lab4 pdf.
 
 def updateReservationPayment (myConn, departureDate):
-	stmt = """
-		SELECT DATE(f.flightID)
-		FROM Reservation r
-		JOIN Flight f ON r.flightID = f.flightID;
-		"""
+#	stmt = "SELECT EXTRACT (YEAR FROM f.scheduledDeparture) AS extracted_year, EXTRACT(MONTH FROM f.scheduledDeparture) AS extracted_month, EXTRACT(DAY FROM f.scheduledDeparture) AS extracted_day FROM Reservation r JOIN Flight f ON r.flightID = f.flightID WHERE TRUE;"
+	stmt = "UPDATE Reservation r SET paymentMethod = paymentMethod || %s FROM Flight f WHERE r.flightID = f.flightID AND DATE(f.scheduledDeparture) = %s;"
+
+	if int(departureDate[0:4]) > 2025 or int(departureDate[0:4]) < 2025:
+		return -1
 
 	try:
 		myCursor = myConn.cursor()
-		myCursor.execute(stmt)
+		myCursor.execute(stmt, (f' REIMBURSED {departureDate[0:10]}', departureDate))
+		updatedRows = myCursor.rowcount
 	except:
 		print(f"Statement {stmt} is bad", file=sys.stderr)
 		myCursor.close()
 		myConn.close()
 		sys.exit(-1)
 
-	rows = myCursor.fetchall()
-	for row in rows:
-		if departureDate[5:10] == row[5:10]:
-			if int(row[0:5]) > 2025 or int(row[0:5]) < 2025:
-				return -1
+#	print("here")
+#	rows = myCursor.fetchall()
+#	print(rows)
+#	month = int(departureDate[5:7])
+#	day = int(departureDate[8:10])
+#	print(int(rows[0][0]))
+#	for row in rows:
+#		if int(row[1]) == month and int(row[2]) == day:
+#			print("yes")
+#			if int(row[0]) > 2025 or int(row[0]) < 2025:
+#				return -1
+#	print("here2")
 
-	stmt = f"""
-		BEGIN TRANSACTION
-		UPDATE Reservation
-		SET r.paymentMethod = r.paymentMethod || 'REIMBURSED {departureDate}'
-		FROM Reservation r, Flight f
-		WHERE DATE(f.departureDate) = {departureDate}
-		COMMIT;
-		"""
+#	stmt2 = "UPDATE Reservation r SET paymentMethod = paymentMethod || %s FROM Flight f WHERE r.flightID = f.flightID AND DATE(f.scheduledDeparture) = %s;"
 
-	myCursor.execute(stmt)
+#	myCursor.execute(stmt2, (f' REIMBURSED {departureDate[0:10]}', departureDate))
 
-	return 0
+#	updatedRows = myCursor.rowcount
+#	print(updatedRows)
+#	print("done")
+
+#	stmt = "SELECT * FROM Reservation"
+#	myCursor.execute(stmt)
+#	rows = myCursor.fetchall()
+#	for row in rows:
+#		print(row)
+
+	myCursor.close()
+
+	return updatedRows
 
 # end updateOrderStatus
 
@@ -135,6 +157,11 @@ def main():
 	# Try to make a connection to the database
 	try:
 		myConn = psycopg2.connect(port=port, user=userID, password=pwd)
+#		for airport in ['LAX', 'JFK', 'SFO', 'ORD', 'SEA', 'SJC', 'ATL', 'DEN']:
+#			result = countNumberOfDepartingPassengers(myConn, airport)
+#			print(f"Airport: {airport} | Passengers: {result}")
+#		updateReservationPayment(myConn, '2025-12-15 08:00:00')
+#		print(promoteCrewMembers(myConn, 1, 1))
 	except:
 		print("Connection to database failed", file=sys.stderr)
 		sys.exit(-1)
@@ -144,20 +171,39 @@ def main():
 	# Could have multiple statement in a transaction, using myConn.commit when we want to commit.
 
 	myConn.autocommit = True
+# Why does this cuase an error???
 
 	# There are other correct ways of writing all of these calls correctly in Python.
 
 	# Perform tests of countNumberOfDepartingPassengers, as described in Section 6 of Lab4.
 	# Print their outputs (including error outputs) here, not in countNumberOfDepartingPassengers.
 	# You may use a Python method to help you do the printing.
+	for airport in ['LAX', 'ATL', 'EWR', 'SFO', 'SJC']:
+		result = countNumberOfDepartingPassengers(myConn, airport)
+		if result >= 0:
+			print(f"Number of passengers for airport {airport} is {result}\n")
+		elif result < 0:
+			print(f"No airport exists with code {airport}\n")
 
 	# Perform tests of updateReservationPayment, as described in Section 6 of Lab4.
 	# Print their outputs (including error outputs) here, not in updateReservationPayment.
 	# You may use a Python method to help you do the printing.
+	for day in ['2025-10-8', '2025-10-9', '2026-10-10', '2025-10-10']:
+		result = updateReservationPayment(myConn, day)
+		if result >= 0:
+			print(f"Number of Reservations whose paymentMethod values were updated by updateReservationPayment is {result}\n")
+		if result < 0:
+			print(f"Invalid date given\n")
 
 	# Perform tests of promoteCrewMembers, as described in Section 6 of Lab4,
 	# Print their outputs (including error outputs) here, not in promoteCrewMembers.
 	# You may use a Python method to help you do the printing.
+	for c, y in [(4, 10), (5, 0), (0, 0), (2, 5), (1, 2)]:
+		result = promoteCrewMembers(myConn, c, y)
+		if result >= 0:
+			print(f"Number of promotions for crewAssignments {c} and minYearsExperience {y} is {result}\n")
+		if result == -1:
+			print(f"Invalid arguments given crewAssignments {c} and minYearsExperience {y}\n")
 
 	myConn.close()
 	sys.exit(0)
